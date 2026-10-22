@@ -1,0 +1,15 @@
+node_modules
+.DS_Store
+*.local
+.vite
+dev-dist
+coverage
+dist
+.idea
+*.log
+.junie
+.claude
+.gemini
+.codex
+.cursor
+CLAUDE.md
