@@ -1,4 +1,5 @@
 import { FREQUENCY_PRESETS, occurrences, parseFrequency } from './frequency.js'
+import { parseAccounts, parseTags } from './groups.js'
 import { isCurrency } from './money.js'
 import { addDays, isDateKey, isTime, todayKey, zonedToUtc } from './zoned.js'
 
@@ -17,8 +18,8 @@ import { addDays, isDateKey, isTime, todayKey, zonedToUtc } from './zoned.js'
  * @property {string} dueTime `HH:MM` in its own timezone.
  * @property {string} timezone
  * @property {string | null} endDate The last date it can go out.
- * @property {string} payee
- * @property {string} reference
+ * @property {string | null} accountId The account it goes out of, from your accounts in Settings.
+ * @property {string[]} tags
  * @property {string} paymentMethod
  * @property {string} notes
  * @property {boolean} remind
@@ -39,6 +40,9 @@ import { addDays, isDateKey, isTime, todayKey, zonedToUtc } from './zoned.js'
  * @property {boolean} notify
  * @property {string} pushUrl
  * @property {string} pushToken
+ * @property {import('./groups.js').Account[]} accounts The accounts bills can go out of.
+ * @property {number | null} balance What was in all your accounts together, in minor units, when you last entered it.
+ * @property {string | null} balanceSetAt When you entered it (ISO).
  */
 
 export const NOTES_MAX = 400
@@ -89,8 +93,8 @@ export function parseBill(raw, baseCurrency, fallbackTimeZone) {
     dueTime: isTime(raw.dueTime) ? raw.dueTime : DEFAULT_DUE_TIME,
     timezone: validTimeZone(raw.timezone) ? raw.timezone : fallbackTimeZone,
     endDate: isDateKey(raw.endDate) ? raw.endDate : null,
-    payee: text(raw.payee, NAME_MAX),
-    reference: text(raw.reference, NAME_MAX),
+    accountId: typeof raw.accountId === 'string' && raw.accountId ? raw.accountId : null,
+    tags: parseTags(raw.tags),
     paymentMethod: text(raw.paymentMethod, NAME_MAX),
     notes: text(raw.notes, NOTES_MAX),
     remind: raw.remind !== false,
@@ -136,6 +140,9 @@ export function defaultPreferences(currency = 'USD') {
     notify: false,
     pushUrl: '',
     pushToken: '',
+    accounts: [],
+    balance: null,
+    balanceSetAt: null,
   }
 }
 
@@ -152,7 +159,14 @@ export function parsePreferences(raw, fallbackCurrency = 'USD') {
     notify: raw.notify === true,
     pushUrl: typeof raw.pushUrl === 'string' ? raw.pushUrl : '',
     pushToken: typeof raw.pushToken === 'string' ? raw.pushToken : '',
+    accounts: parseAccounts(raw.accounts),
+    ...parseBalanceEntry(raw),
   }
+}
+
+function parseBalanceEntry(raw) {
+  const valid = Number.isInteger(raw.balance) && typeof raw.balanceSetAt === 'string' && !Number.isNaN(Date.parse(raw.balanceSetAt))
+  return valid ? { balance: raw.balance, balanceSetAt: raw.balanceSetAt } : { balance: null, balanceSetAt: null }
 }
 
 /** The moment a bill goes out on `dateKey`, a date in its own timezone. @param {Bill} bill */

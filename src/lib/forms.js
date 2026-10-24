@@ -1,4 +1,5 @@
 import { parseFrequency } from './frequency.js'
+import { parseTags } from './groups.js'
 import { DEFAULT_DUE_TIME, NAME_MAX, NOTES_MAX, newId } from './models.js'
 import { amountInputValue, parseAmount, parseRate } from './money.js'
 import { isDateKey, isTime, todayKey } from './zoned.js'
@@ -17,8 +18,8 @@ export function billDraft(bill, { baseCurrency, timezone, now = Date.now() }) {
       dueTime: bill.dueTime,
       timezone: bill.timezone,
       endDate: bill.endDate ?? '',
-      payee: bill.payee,
-      reference: bill.reference,
+      accountId: bill.accountId ?? '',
+      tags: [...bill.tags],
       paymentMethod: bill.paymentMethod,
       notes: bill.notes,
       remind: bill.remind,
@@ -35,8 +36,8 @@ export function billDraft(bill, { baseCurrency, timezone, now = Date.now() }) {
     dueTime: DEFAULT_DUE_TIME,
     timezone,
     endDate: '',
-    payee: '',
-    reference: '',
+    accountId: '',
+    tags: [],
     paymentMethod: '',
     notes: '',
     remind: true,
@@ -80,8 +81,8 @@ export function billFromDraft(draft, previous, { baseCurrency, now = Date.now() 
       dueTime: draft.dueTime,
       timezone: draft.timezone,
       endDate: draft.endDate || null,
-      payee: draft.payee.trim().slice(0, NAME_MAX),
-      reference: draft.reference.trim().slice(0, NAME_MAX),
+      accountId: draft.accountId || null,
+      tags: parseTags(draft.tags),
       paymentMethod: draft.paymentMethod.trim().slice(0, NAME_MAX),
       notes: draft.notes.trim().slice(0, NOTES_MAX),
       remind: draft.remind,

@@ -4,9 +4,11 @@ import AppDialog from '@/components/AppDialog.vue'
 import CurrencySelect from '@/components/CurrencySelect.vue'
 import FrequencySelect from '@/components/FrequencySelect.vue'
 import ScreenHeader from '@/components/ScreenHeader.vue'
+import TagPicker from '@/components/TagPicker.vue'
 import TimezoneSelect from '@/components/TimezoneSelect.vue'
 import { useViewStack } from '@/composables/useViewStack.js'
 import { billDraft, billFromDraft } from '@/lib/forms.js'
+import { tagOptions } from '@/lib/groups.js'
 import { describeAge } from '@/lib/models.js'
 import { formatMoney, parseAmount, parseRate, toBaseMinor } from '@/lib/money.js'
 import { useBudgetStore } from '@/stores/budget.js'
@@ -18,10 +20,12 @@ const props = defineProps({ billId: { type: String, default: null } })
 const budget = useBudgetStore()
 const preferences = usePreferencesStore()
 const toast = useToastStore()
-const { back } = useViewStack()
+const { back, open } = useViewStack()
 
 const previous = budget.bills.find((bill) => bill.id === props.billId) ?? null
 const draft = reactive(billDraft(previous, { baseCurrency: preferences.currency, timezone: preferences.timezone }))
+if (draft.accountId && !preferences.accounts.some((account) => account.id === draft.accountId)) draft.accountId = ''
+const knownTags = computed(() => tagOptions(budget.bills).map((option) => option.tag))
 const errors = ref([])
 const confirmDelete = ref(false)
 
@@ -113,18 +117,24 @@ function remove() {
 
       <div class="card grid gap-4">
         <div>
-          <label class="label" for="bill-payee">Payee (optional)</label>
-          <input id="bill-payee" v-model="draft.payee" class="field" maxlength="80" autocomplete="off">
+          <label class="label" for="bill-account">Account</label>
+          <select v-if="preferences.accounts.length" id="bill-account" v-model="draft.accountId" class="field">
+            <option value="">No account</option>
+            <option v-for="account in preferences.accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
+          </select>
+          <p v-else class="m-0 text-sm text-muted">
+            List the accounts your bills go out of in
+            <button type="button" class="border-0 bg-transparent p-0 font-semibold text-teal" @click="open('settings')">Settings</button>,
+            then choose one here.
+          </p>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="label" for="bill-reference">Reference</label>
-            <input id="bill-reference" v-model="draft.reference" class="field" maxlength="80" autocomplete="off">
-          </div>
-          <div>
-            <label class="label" for="bill-method">Paid by</label>
-            <input id="bill-method" v-model="draft.paymentMethod" class="field" maxlength="80" autocomplete="off" placeholder="Direct debit">
-          </div>
+        <div>
+          <label class="label" for="bill-tags">Tags</label>
+          <TagPicker id="bill-tags" v-model="draft.tags" :known="knownTags" />
+        </div>
+        <div>
+          <label class="label" for="bill-method">Paid by</label>
+          <input id="bill-method" v-model="draft.paymentMethod" class="field" maxlength="80" autocomplete="off" placeholder="Direct debit">
         </div>
         <div>
           <label class="label" for="bill-notes">Notes</label>

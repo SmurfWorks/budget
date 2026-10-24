@@ -47,6 +47,7 @@ export const useRemindersStore = defineStore('reminders', () => {
       userTimeZone: preferences.timezone,
       hour: preferences.reminderHour,
       baseCurrency: preferences.currency,
+      accounts: preferences.accounts,
       now: Date.now(),
     }).map((item) => ({ ...item, url: appUrl, icon }))
   }

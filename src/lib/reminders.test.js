@@ -16,8 +16,8 @@ function bill(fields) {
     dueTime: '09:00',
     timezone: LA,
     endDate: null,
-    payee: '',
-    reference: '',
+    accountId: null,
+    tags: [],
     paymentMethod: '',
     notes: '',
     remind: true,
@@ -50,7 +50,8 @@ describe('bill reminders', () => {
   })
 
   it('books one notification per bill slot in the next 30 days, plus a reminder to open the app', () => {
-    const planned = plannedReminders([bill({ name: 'Power', timezone: NZ, payee: 'Mercury' })], options)
+    const accounts = [{ id: 'everyday', name: 'Everyday' }]
+    const planned = plannedReminders([bill({ name: 'Power', timezone: NZ, accountId: 'everyday' })], { ...options, accounts })
     expect(planned.map((item) => item.key)).toEqual(['slot-2026-11-04', KEEP_GOING_KEY])
     expect(planned[0]).toMatchObject({
       deliverAt: '2026-11-04T17:00:00.000Z',
@@ -59,7 +60,7 @@ describe('bill reminders', () => {
       billIds: ['power'],
     })
     expect(planned[0].body).toContain('$100.00')
-    expect(planned[0].body).toContain('Mercury')
+    expect(planned[0].body).toContain('From Everyday')
     expect(planned[0].body).toMatch(/Wed 12:00 PM \(Thu 9:00 AM GMT\+13\)/)
     expect(planned[1].deliverAt).toBe('2026-11-21T17:00:00.000Z')
   })

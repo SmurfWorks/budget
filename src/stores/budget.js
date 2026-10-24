@@ -64,6 +64,21 @@ export const useBudgetStore = defineStore('budget', () => {
     useRemindersStore().syncBill(null, bill)
   }
 
+  /** Takes a removed account off its bills, and returns their ids so Undo can put it back. */
+  function clearAccount(accountId) {
+    const ids = []
+    for (const bill of bills.value) {
+      if (bill.accountId !== accountId) continue
+      bill.accountId = null
+      ids.push(bill.id)
+    }
+    return ids
+  }
+
+  function restoreAccount(accountId, billIds) {
+    for (const bill of bills.value) if (billIds.includes(bill.id)) bill.accountId = accountId
+  }
+
   function saveIncome(income) {
     const index = incomes.value.findIndex((item) => item.id === income.id)
     if (index >= 0) incomes.value.splice(index, 1, income)
@@ -96,12 +111,15 @@ export const useBudgetStore = defineStore('budget', () => {
     bills,
     view,
     budget,
+    now,
     upcoming,
     nextPay,
     refreshNow,
     saveBill,
     removeBill,
     restoreBill,
+    clearAccount,
+    restoreAccount,
     saveIncome,
     removeIncome,
     restoreIncome,

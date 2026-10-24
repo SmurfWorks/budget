@@ -34,4 +34,23 @@ describe('BillForm', () => {
     expect(wrapper.find('[role="alert"]').text()).toContain('Enter the amount')
     expect(useBudgetStore().bills).toEqual([])
   })
+
+  it('saves the account and tags, adding a typed tag with Enter in the spelling you already use', async () => {
+    const preferences = usePreferencesStore()
+    preferences.addAccount('Joint')
+    const budget = useBudgetStore()
+    budget.bills.push({ id: 'old', name: 'Old', amount: 1, currency: 'USD', rate: 1, frequency: { unit: 'month', every: 1 }, anchorDate: '2026-10-01', dueTime: '09:00', timezone: 'UTC', endDate: null, accountId: null, tags: ['Work'], paymentMethod: '', notes: '', remind: false })
+    const wrapper = mount(BillForm)
+    await wrapper.find('#bill-name').setValue('Rent')
+    await wrapper.find('#bill-amount').setValue('1200')
+    await wrapper.find('#bill-account').setValue(preferences.accounts[0].id)
+    await wrapper.find('#bill-tags').setValue('work')
+    await wrapper.find('#bill-tags').trigger('keydown', { key: 'Enter' })
+    await wrapper.find('#bill-tags').setValue('House')
+    await wrapper.find('#bill-tags').trigger('keydown', { key: ',' })
+    await wrapper.find('form').trigger('submit')
+
+    const bill = budget.bills.find((item) => item.name === 'Rent')
+    expect(bill).toMatchObject({ accountId: preferences.accounts[0].id, tags: ['Work', 'House'] })
+  })
 })

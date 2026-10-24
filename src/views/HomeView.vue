@@ -1,4 +1,7 @@
 <script setup>
+import { computed } from 'vue'
+import BalanceForecastCard from '@/components/BalanceForecastCard.vue'
+import BillTotalsCard from '@/components/BillTotalsCard.vue'
 import BudgetSummaryCard from '@/components/BudgetSummaryCard.vue'
 import InstallBanner from '@/components/InstallBanner.vue'
 import NextPayCard from '@/components/NextPayCard.vue'
@@ -6,8 +9,11 @@ import UpcomingBills from '@/components/UpcomingBills.vue'
 import { useAbout } from '@/composables/useAbout.js'
 import { useViewStack } from '@/composables/useViewStack.js'
 import { useBudgetStore } from '@/stores/budget.js'
+import { usePreferencesStore } from '@/stores/preferences.js'
 
 const budget = useBudgetStore()
+const preferences = usePreferencesStore()
+const anyTags = computed(() => budget.bills.some((bill) => bill.tags.length > 0))
 const { open } = useViewStack()
 const about = useAbout()
 </script>
@@ -58,6 +64,9 @@ const about = useAbout()
       <template v-else>
         <BudgetSummaryCard />
         <NextPayCard />
+        <BalanceForecastCard />
+        <BillTotalsCard v-if="preferences.accounts.length && budget.bills.length" by="account" />
+        <BillTotalsCard v-if="anyTags" by="tag" />
         <UpcomingBills />
       </template>
     </div>

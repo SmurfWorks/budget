@@ -83,9 +83,10 @@ function timeText(item, userTimeZone, locale) {
   return `${yours} (${theirs} ${zoneAbbreviation(item.bill.timezone, item.at, locale)})`
 }
 
-function singleNotification(item, { userTimeZone, baseCurrency, locale }) {
+function singleNotification(item, { userTimeZone, baseCurrency, locale, accounts = [] }) {
   const { bill } = item
-  const extra = [bill.payee, bill.reference && `Ref ${bill.reference}`, bill.paymentMethod].filter(Boolean).join(' · ')
+  const account = accounts.find((entry) => entry.id === bill.accountId)
+  const extra = [account && `From ${account.name}`, bill.paymentMethod].filter(Boolean).join(' · ')
   const parts = [amountText(bill, baseCurrency, locale), timeText(item, userTimeZone, locale), extra].filter(Boolean)
   return {
     title: clip(`${bill.name} goes out in the next 24 hours`, TITLE_MAX),

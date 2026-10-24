@@ -20,6 +20,13 @@ describe('stored bills, income and preferences', () => {
     expect(bill).toMatchObject({ name: 'Rent', currency: 'NZD', rate: 0.6, dueTime: '07:30', remind: true, endDate: null })
   })
 
+  it('reads a bill\'s account and tags, and drops the old payee and reference', () => {
+    const bill = parseBill({ ...raw, accountId: 'joint', tags: ['Work', 'work', 'House'], payee: 'Landlord', reference: '42' }, 'USD', 'UTC')
+    expect(bill).toMatchObject({ accountId: 'joint', tags: ['Work', 'House'] })
+    expect(bill).not.toHaveProperty('payee')
+    expect(parseBill(raw, 'USD', 'UTC')).toMatchObject({ accountId: null, tags: [] })
+  })
+
   it('keeps the rate at 1 when the bill is in your income currency', () => {
     expect(parseBill({ ...raw, currency: 'USD' }, 'USD', 'UTC').rate).toBe(1)
   })
@@ -33,6 +40,10 @@ describe('stored bills, income and preferences', () => {
   it('reads preferences, falling back to defaults', () => {
     expect(parsePreferences({ currency: 'NZD', reminderHour: 25 }, 'USD')).toMatchObject({ currency: 'NZD', reminderHour: 9, notify: false })
     expect(parsePreferences(null, 'GBP').currency).toBe('GBP')
+    expect(parsePreferences({ accounts: [{ id: 'a', name: 'Joint' }] }, 'USD').accounts).toEqual([{ id: 'a', name: 'Joint' }])
+    expect(parsePreferences({}, 'USD').accounts).toEqual([])
+    expect(parsePreferences({ balance: 1_000, balanceSetAt: '2026-10-20T00:00:00Z' }, 'USD')).toMatchObject({ balance: 1_000 })
+    expect(parsePreferences({ balance: 1.5, balanceSetAt: '2026-10-20T00:00:00Z' }, 'USD')).toMatchObject({ balance: null, balanceSetAt: null })
   })
 
   it('finds the next time a bill goes out, and the next pay date', () => {

@@ -19,13 +19,16 @@ export function buildBackup({ incomes, bills, preferences }, now = new Date()) {
       reminderHour: preferences.reminderHour,
       viewFrequency: preferences.viewFrequency,
       viewChosen: preferences.viewChosen,
+      accounts: preferences.accounts,
+      balance: preferences.balance,
+      balanceSetAt: preferences.balanceSetAt,
     },
   }
 }
 
 /**
  * Reads a backup file's text. Throws with a message to show when it is not a Budget Helper backup.
- * @returns {{ exportedAt: string | null, incomes: import('./models.js').Income[], bills: import('./models.js').Bill[], preferences: { currency: string, reminderHour: number, viewFrequency: import('./frequency.js').Frequency, viewChosen: boolean } }}
+ * @returns {{ exportedAt: string | null, incomes: import('./models.js').Income[], bills: import('./models.js').Bill[], preferences: { currency: string, reminderHour: number, viewFrequency: import('./frequency.js').Frequency, viewChosen: boolean, accounts: import('./groups.js').Account[], balance: number | null, balanceSetAt: string | null } }}
  */
 export function parseBackup(text, fallbackTimeZone, fallbackCurrency = 'USD') {
   let raw
@@ -48,6 +51,9 @@ export function parseBackup(text, fallbackTimeZone, fallbackCurrency = 'USD') {
       reminderHour: preferences.reminderHour,
       viewFrequency: preferences.viewFrequency,
       viewChosen: preferences.viewChosen,
+      accounts: preferences.accounts,
+      balance: preferences.balance,
+      balanceSetAt: preferences.balanceSetAt,
     },
   }
 }

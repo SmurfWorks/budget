@@ -6,12 +6,14 @@ import ScreenHeader from '@/components/ScreenHeader.vue'
 import TimezoneSelect from '@/components/TimezoneSelect.vue'
 import { useViewStack } from '@/composables/useViewStack.js'
 import { pageOrigin } from '@/lib/push.js'
+import { useBudgetStore } from '@/stores/budget.js'
 import { useDataStore } from '@/stores/data.js'
 import { usePreferencesStore } from '@/stores/preferences.js'
 import { useRemindersStore } from '@/stores/reminders.js'
 import { useToastStore } from '@/stores/toast.js'
 
 const preferences = usePreferencesStore()
+const budget = useBudgetStore()
 const reminders = useRemindersStore()
 const data = useDataStore()
 const toast = useToastStore()
@@ -26,6 +28,36 @@ const hours = Array.from({ length: 24 }, (_, hour) => ({
 const pushUrl = ref(preferences.pushUrl)
 const pushToken = ref(preferences.pushToken)
 
+const newAccount = ref('')
+const accountError = ref('')
+
+function billCount(accountId) {
+  const n = budget.bills.filter((bill) => bill.accountId === accountId).length
+  return n === 0 ? 'No bills' : `${n} bill${n === 1 ? '' : 's'}`
+}
+
+function addAccount() {
+  accountError.value = preferences.addAccount(newAccount.value) ?? ''
+  if (!accountError.value) newAccount.value = ''
+}
+
+function renameAccount(account, event) {
+  const error = preferences.renameAccount(account.id, event.target.value)
+  accountError.value = error ?? ''
+  if (error) event.target.value = account.name
+}
+
+function removeAccount(account) {
+  accountError.value = ''
+  const removed = preferences.removeAccount(account.id)
+  if (!removed) return
+  const billIds = budget.clearAccount(account.id)
+  toast.show(`${account.name} removed`, () => {
+    preferences.restoreAccount(removed)
+    budget.restoreAccount(account.id, billIds)
+  })
+}
+
 const restoreInput = ref(null)
 const pendingRestore = ref(null)
 const restoreOpen = ref(false)
@@ -38,7 +70,8 @@ const restoreSummary = computed(() => {
   if (!backup) return ''
   const when = backup.exportedAt ? ` from ${new Date(backup.exportedAt).toLocaleDateString()}` : ''
   const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
-  return `This backup${when} holds ${count(backup.incomes.length, 'income')} and ${count(backup.bills.length, 'bill')}, in ${backup.preferences.currency}.`
+  const accounts = backup.preferences.accounts.length ? `, ${count(backup.preferences.accounts.length, 'account')}` : ''
+  return `This backup${when} holds ${count(backup.incomes.length, 'income')}${accounts} and ${count(backup.bills.length, 'bill')}, in ${backup.preferences.currency}.`
 })
 
 function toggleNotify(event) {
@@ -108,6 +141,35 @@ async function deleteEverything(localOnly = false) {
         </div>
       </div>
 
+      <div class="card grid gap-3">
+        <h2 class="m-0 text-lg font-semibold">Accounts</h2>
+        <p class="m-0 text-sm text-muted">
+          The accounts your bills go out of. Choose one on each bill to see what goes out of each account.
+        </p>
+        <ul v-if="preferences.accounts.length" class="m-0 grid list-none gap-2 p-0">
+          <li v-for="account in preferences.accounts" :key="account.id" class="grid grid-cols-[1fr_auto] items-center gap-2">
+            <div>
+              <input
+                class="field"
+                :value="account.name"
+                maxlength="40"
+                autocomplete="off"
+                :aria-label="`Name of ${account.name}`"
+                @change="renameAccount(account, $event)"
+                @keydown.enter="$event.target.blur()"
+              >
+              <span class="mt-1 block text-sm text-muted">{{ billCount(account.id) }}</span>
+            </div>
+            <button type="button" class="btn btn-quiet self-start" :aria-label="`Remove ${account.name}`" @click="removeAccount(account)">Remove</button>
+          </li>
+        </ul>
+        <form class="grid grid-cols-[1fr_auto] gap-2" novalidate @submit.prevent="addAccount">
+          <input v-model="newAccount" class="field" maxlength="40" autocomplete="off" aria-label="New account" placeholder="Everyday, Joint, Credit card…">
+          <button type="submit" class="btn">Add</button>
+        </form>
+        <p v-if="accountError" class="m-0 text-sm font-semibold text-warn" role="alert">{{ accountError }}</p>
+      </div>
+
       <div class="card grid gap-4">
         <h2 class="m-0 text-lg font-semibold">Reminders</h2>
         <div>
@@ -147,7 +209,7 @@ async function deleteEverything(localOnly = false) {
       <div class="card grid gap-3">
         <h2 class="m-0 text-lg font-semibold">Your data</h2>
         <p class="m-0 text-sm text-muted">
-          Your income, bills and settings are kept in this browser only. A backup holds them all, except the timezone and reminder server.
+          Your income, bills, accounts and settings are kept in this browser only. A backup holds them all, except the timezone and reminder server.
         </p>
         <button type="button" class="btn btn-quiet" @click="data.exportBackup()">Backup to file</button>
         <button type="button" class="btn btn-quiet" @click="restoreInput.click()">Restore from file</button>
@@ -157,7 +219,7 @@ async function deleteEverything(localOnly = false) {
     </div>
 
     <AppDialog v-model:open="restoreOpen" title="Restore this backup?">
-      <p class="m-0">{{ restoreSummary }} It replaces the income and bills on this phone.</p>
+      <p class="m-0">{{ restoreSummary }} It replaces the income, bills and accounts on this phone.</p>
       <template #actions>
         <button type="button" class="btn btn-quiet" @click="restoreOpen = false">Cancel</button>
         <button type="button" class="btn" @click="restore">Restore</button>
