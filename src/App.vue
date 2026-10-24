@@ -10,6 +10,7 @@ import BillsView from './views/BillsView.vue'
 import HomeView from './views/HomeView.vue'
 import IncomeForm from './views/IncomeForm.vue'
 import IncomeView from './views/IncomeView.vue'
+import ReportView from './views/ReportView.vue'
 import SettingsView from './views/SettingsView.vue'
 
 const screens = {
@@ -17,6 +18,7 @@ const screens = {
   'bill-edit': BillForm,
   incomes: IncomeView,
   'income-edit': IncomeForm,
+  report: ReportView,
   settings: SettingsView,
 }
 

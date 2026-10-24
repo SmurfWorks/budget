@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { nextTick } from 'vue'
 import { backupFileName, buildBackup, parseBackup } from '@/lib/backup.js'
+import { downloadText } from '@/lib/download.js'
 import { clearAllStorage } from '@/lib/storage.js'
 import { useBudgetStore } from './budget.js'
 import { usePreferencesStore } from './preferences.js'
@@ -20,15 +21,7 @@ export const useDataStore = defineStore('data', () => {
 
   /** Saves a backup file to the phone. */
   function exportBackup() {
-    const blob = new Blob([backupText()], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = backupFileName()
-    document.body.append(link)
-    link.click()
-    link.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1_000)
+    downloadText(backupText(), backupFileName(), 'application/json')
   }
 
   /** Reads a backup file, throwing a message to show when it cannot be used. */

@@ -65,5 +65,6 @@ const count = (n) => `${n} bill${n === 1 ? '' : 's'}`
       </li>
     </ul>
     <p v-if="by === 'tag'" class="mt-2 mb-0 text-sm text-muted">A bill with more than one tag counts under each.</p>
+    <button type="button" class="mt-3 border-0 bg-transparent p-0 text-sm font-semibold text-teal" @click="open('report', { by })">Open report</button>
   </section>
 </template>

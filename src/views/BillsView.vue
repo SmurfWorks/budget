@@ -96,6 +96,7 @@ function nextText(bill) {
   <section aria-label="Bills">
     <div class="mx-auto w-full max-w-[40rem]">
       <ScreenHeader title="Bills" eyebrow="Going out">
+        <button v-if="budget.bills.length" type="button" class="btn btn-quiet" @click="open('report')">Report</button>
         <button type="button" class="btn" @click="open('bill-edit')">Add</button>
       </ScreenHeader>
 

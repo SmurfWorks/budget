@@ -12,7 +12,11 @@ Everything is turned into a yearly amount: a week is 52 times a year, a fortnigh
 
 **Money in your accounts** estimates what is in all your accounts together each day, as a graph, for the next **30 days**, **3 months**, **6 months** or **Year**. Pay arrives at the start of its date in your timezone and each bill goes out on its date, converted to your income currency; on a pay date the bills are taken off first, as in **Next pay**. Tap **Enter what is in them now** (or **Update**) and type the total in all your accounts, with a minus sign if you are overdrawn. **About now** then starts from that amount and adds the pay and takes off the bills since you entered it, so it stays an estimate until you update it. Until you enter an amount, the graph starts at zero and shows how far your accounts go up or down. Under the graph are the **Lowest** point and where you end up, and **Goes below zero on…** when the estimate drops under zero; the part of the line under zero is drawn in the warning colour. Touch or point at the graph (or use the arrow keys) to read a day's amount and its pay and bills, or open **Show as a list** for every day that has pay or bills.
 
-**Bills by account** shows, once you have listed accounts in **Settings**, what goes out of each account per period and per year, with bills that have no account under **No account**. **Bills by tag** shows what each tag's bills cost; a bill with more than one tag counts under each, so these add up to more than your bills. Tap a row to open **Bills** showing only those bills.
+**Bills by account** shows, once you have listed accounts in **Settings**, what goes out of each account per period and per year, with bills that have no account under **No account**. **Bills by tag** shows what each tag's bills cost; a bill with more than one tag counts under each, so these add up to more than your bills. Tap a row to open **Bills** showing only those bills, or **Open report** for the full summary.
+
+## Report
+
+**Report**, on the **Bills** screen or under **Bills by account** and **Bills by tag**, sums up your bills **By account** or **By tag**, per **Week**, **Fortnight**, **4 weeks**, **Month** or **Year** (the same period as **Your budget**). Each account or tag shows its total for the period and the year, how many bills it has, and its share of all your bills, with a bar against the largest; **No account** or **No tag** comes last, and **All bills** totals them. A bill with more than one tag counts under each, so the tags can add up to more than all bills. Tap an account or tag to open **Bills** showing only those bills. **Download as CSV** saves the summary as a spreadsheet file, with amounts in your income currency.
 
 **Next 30 days** lists every bill that goes out in the next 30 days, at the day and time in your timezone. Tap one to edit it.
 
@@ -95,11 +99,13 @@ The app is Vue 3 (Composition API, `<script setup>`), Pinia and Tailwind CSS 4, 
 | `src/lib/forms.js` | Checking the bill and income forms |
 | `src/lib/filters.js` | Searching bills and filtering them by frequency, account and tag |
 | `src/lib/groups.js` | Accounts and tags: tidying and checking them, suggesting tags, and totals by account and by tag |
+| `src/lib/report.js` | **Report**: totals by account or tag, shares of all bills, and the CSV file |
 | `src/lib/backup.js` | Making and reading backup files |
+| `src/lib/download.js` | Saving a backup or report file to the phone |
 | `src/lib/storage.js` | Storage keys, safe reads and writes, and clearing everything |
 | `src/lib/timezone.js`, `src/lib/device.js` | Timezone names ordered from New Zealand, and Safari and iPhone detection |
 | `src/stores/` | Pinia stores: `preferences`, `budget`, `reminders`, `data` (backup and delete) and `toast` |
-| `src/views/` | Screens: home, bills, bill form, income, income form, settings |
+| `src/views/` | Screens: home, bills, bill form, report, income, income form, settings |
 | `src/components/` | Parts of screens: budget, next pay, money in your accounts (and its graph) and totals cards, the 30-day list, dialogs, pickers (including tags), the install banner |
 | `src/composables/` | Screens sliding over each other (and the back gesture), the install prompt, **How it works** |
 | `src/theme.css`, `src/style.css`, `src/welcome.css` | Shared light and dark colours, Tailwind setup and app styles, the welcome page's styles |
